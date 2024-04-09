@@ -1,0 +1,1 @@
+# A golang library built on top of [pubsub](https://github.com/prasadaman2000/pubsub)

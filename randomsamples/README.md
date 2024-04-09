@@ -1,0 +1,1 @@
+This contains a simple CLI chat application built on top of pubsublib as another example of what you can do with pubsublib.
