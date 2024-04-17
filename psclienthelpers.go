@@ -26,8 +26,9 @@ func (u JSONableSlice) MarshalJSON() ([]byte, error) {
 }
 
 type QueuedMessage struct {
-	Msg  JSONableSlice
-	Time time.Time
+	Msg   JSONableSlice
+	Time  time.Time
+	Topic string
 }
 
 type Client struct {
@@ -45,8 +46,9 @@ func (c *Client) EnqueueMessages() {
 	for {
 		msg := <-c.pubSubClient.MessageChan
 		message := &QueuedMessage{
-			Msg:  msg.GetMessageRaw(),
-			Time: time.Now().UTC(),
+			Msg:   msg.GetMessageRaw(),
+			Time:  time.Now().UTC(),
+			Topic: msg.GetTopic(),
 		}
 		c.lock.Lock()
 		c.messageQueue = append(c.messageQueue, message)
