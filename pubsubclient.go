@@ -2,6 +2,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"net/http"
 )
 
@@ -9,17 +11,22 @@ const SERVER_IP = "localhost"
 const SERVER_PORT = 8080
 
 /*
-	/clientConnect - takes string username and string password in URL params
-	/subscribe - takes string username, string password, and string topic in URL params
-	/publish - takes string username, string password, and string topic in URL params and arbitrary bytes in req body
-	/poll - takes string username, string password, returns JSON serialized array of QueuedMessages (byte array is a literal array of bytes)
+/clientConnect - takes string username and string password in URL params
+/subscribe - takes string username, string password, and string topic in URL params
+/publish - takes string username, string password, and string topic in URL params and arbitrary bytes in req body
+/poll - takes string username, string password, returns JSON serialized array of QueuedMessages (byte array is a literal array of bytes)
 */
 func main() {
-	p := NewPopulation(SERVER_IP, SERVER_PORT)
+	address := flag.String("address", "0.0.0.0", "--address defines the address to bind the server to.")
+	port := flag.Int("port", 8099, "--port defines the port to bind the server to.")
+
+	pubsubclientAddr := fmt.Sprintf("%s:%d", *address, *port)
+
+	p := NewPopulation(SERVER_IP, SERVER_PORT, *address)
 	http.HandleFunc("/clientConnect", p.ClientConnectEntry)
 	http.HandleFunc("/subscribe", p.SubscribeEntry)
 	http.HandleFunc("/publish", p.PublishEntry)
 	http.HandleFunc("/poll", p.PollMessagesEntry)
 
-	http.ListenAndServe(":8099", nil)
+	http.ListenAndServe(pubsubclientAddr, nil)
 }

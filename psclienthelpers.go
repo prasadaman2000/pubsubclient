@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-const LOCAL_ADDR = "localhost"
-
 type JSONableSlice []byte
 
 func (u JSONableSlice) MarshalJSON() ([]byte, error) {
@@ -81,20 +79,19 @@ type Population struct {
 	clientMap  map[string]*Client
 	serverIp   string
 	serverPort int
+	clientAddr string
 }
 
-func NewPopulation(serverIp string, serverPort int) *Population {
+func NewPopulation(serverIp string, serverPort int, clientAddr string) *Population {
 	return &Population{
 		clientMap:  make(map[string]*Client),
 		serverIp:   serverIp,
 		serverPort: serverPort,
+		clientAddr: clientAddr,
 	}
 }
 
 var portNum int = 8100
-
-// var listenIp string = "localhost"
-var listenIp string = LOCAL_ADDR
 
 func (p *Population) ClientConnect(username string, password string) error {
 	if user, ok := p.clientMap[username]; ok {
@@ -104,9 +101,9 @@ func (p *Population) ClientConnect(username string, password string) error {
 		fmt.Printf("User %s is already registered\n", username)
 		return nil
 	}
-	psClient := pubsublib.NewPubSubClient(listenIp, portNum)
+	psClient := pubsublib.NewPubSubClient(p.clientAddr, portNum)
 	client := &Client{
-		ip:           listenIp,
+		ip:           p.clientAddr,
 		port:         portNum,
 		password:     password,
 		messageQueue: make([]*QueuedMessage, 0),

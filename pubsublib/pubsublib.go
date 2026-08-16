@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 )
 
 type Message struct {
@@ -59,7 +58,7 @@ func NewPubSubClient(listenIp string, listenPort int) *PubSubClient {
 		}
 		client.MessageChan <- message
 	})
-	go http.ListenAndServe(":"+strconv.Itoa(listenPort), serverMux)
+	go http.ListenAndServe(fmt.Sprintf("%s:%d", listenIp, listenPort), serverMux)
 	return client
 }
 
