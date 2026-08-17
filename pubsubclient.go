@@ -7,9 +7,6 @@ import (
 	"net/http"
 )
 
-const SERVER_IP = "localhost"
-const SERVER_PORT = 8080
-
 /*
 /clientConnect - takes string username and string password in URL params
 /subscribe - takes string username, string password, and string topic in URL params
