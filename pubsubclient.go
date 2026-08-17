@@ -23,6 +23,8 @@ func main() {
 	pubsubServerAddress := flag.String("pubsub_addr", "0.0.0.0", "--pubsub_addr defines the address the base pubsub server is running on.")
 	pubsubServerPort := flag.Int("pubsub_port", 8080, "--port defines the port the base pubsub server is running on.")
 
+	flag.Parse()
+
 	pubsubclientAddr := fmt.Sprintf("%s:%d", *address, *port)
 
 	p := NewPopulation(*pubsubServerAddress, *pubsubServerPort, *address)
