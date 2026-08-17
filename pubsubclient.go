@@ -33,5 +33,6 @@ func main() {
 	http.HandleFunc("/publish", p.PublishEntry)
 	http.HandleFunc("/poll", p.PollMessagesEntry)
 
+	fmt.Printf("started client on %s\n", pubsubclientAddr)
 	http.ListenAndServe(pubsubclientAddr, nil)
 }
