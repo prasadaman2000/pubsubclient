@@ -34,7 +34,7 @@ type Client struct {
 	port         int
 	username     string
 	password     string
-	messageQueue []*QueuedMessage // this addr will likely be constantly changing, don't read this directly
+	messageQueue []*QueuedMessage // not safe to read
 	lastOutgoing time.Time
 	pubSubClient *pubsublib.PubSubClient
 	lock         *sync.Mutex
@@ -57,7 +57,8 @@ func (c *Client) EnqueueMessages() {
 func (c *Client) PollMessages() []*QueuedMessage {
 	c.lock.Lock()
 	msgs := c.messageQueue
-	c.messageQueue = make([]*QueuedMessage, 0)
+	clear(c.messageQueue)
+	c.messageQueue = c.messageQueue[:0]
 	c.lock.Unlock()
 	return msgs
 }
@@ -178,7 +179,7 @@ func (p *Population) ClientConnectEntry(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	w.WriteHeader(200)
-	w.Write([]byte(fmt.Sprintf("client %s connected", username)))
+	fmt.Fprintf(w, "client %s connected", username)
 }
 
 func (p *Population) SubscribeEntry(w http.ResponseWriter, r *http.Request) {
@@ -207,7 +208,7 @@ func (p *Population) SubscribeEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
-	w.Write([]byte(fmt.Sprintf("subscribed to %v", topic)))
+	fmt.Fprintf(w, "subscribed to %v", topic)
 }
 
 func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
@@ -233,7 +234,7 @@ func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(400)
-		w.Write([]byte(fmt.Sprintf("could not get request body %v", err)))
+		fmt.Fprintf(w, "could not get request body %v", err)
 		return
 	}
 	err = p.Publish(username, password, topic, body)
@@ -243,7 +244,7 @@ func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
-	w.Write([]byte(fmt.Sprintf("published to %v", topic)))
+	fmt.Fprintf(w, "published to %v", topic)
 }
 
 func (p *Population) PollMessagesEntry(w http.ResponseWriter, r *http.Request) {

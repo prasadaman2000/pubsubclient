@@ -49,7 +49,7 @@ func NewPubSubClient(listenIp string, listenPort int) *PubSubClient {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(400)
-			w.Write([]byte(fmt.Sprintf("could not get request body %v", err)))
+			fmt.Fprintf(w, "could not get request body %v", err)
 			return
 		}
 		message := &Message{
