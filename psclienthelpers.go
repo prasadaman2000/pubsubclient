@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"pubsubclient/pubsublib"
 	"strings"
 	"sync"
@@ -149,8 +150,7 @@ func (p *Population) Publish(username string, password string, topic string, mes
 	return fmt.Errorf("user %s either does not exist or bad password", username)
 }
 
-func GetURLArg(r *http.Request, arg string) (string, error) {
-	vals := r.URL.Query()
+func GetURLArg(vals url.Values, arg string) (string, error) {
 	var err error
 	val := vals.Get(arg)
 	if val == "" {
@@ -160,13 +160,14 @@ func GetURLArg(r *http.Request, arg string) (string, error) {
 }
 
 func (p *Population) ClientConnectEntry(w http.ResponseWriter, r *http.Request) {
-	username, err := GetURLArg(r, "username")
+	vals := r.URL.Query()
+	username, err := GetURLArg(vals, "username")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	password, err := GetURLArg(r, "password")
+	password, err := GetURLArg(vals, "password")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
@@ -183,19 +184,20 @@ func (p *Population) ClientConnectEntry(w http.ResponseWriter, r *http.Request) 
 }
 
 func (p *Population) SubscribeEntry(w http.ResponseWriter, r *http.Request) {
-	username, err := GetURLArg(r, "username")
+	vals := r.URL.Query()
+	username, err := GetURLArg(vals, "username")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	password, err := GetURLArg(r, "password")
+	password, err := GetURLArg(vals, "password")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	topic, err := GetURLArg(r, "topic")
+	topic, err := GetURLArg(vals, "topic")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
@@ -212,19 +214,20 @@ func (p *Population) SubscribeEntry(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
-	username, err := GetURLArg(r, "username")
+	vals := r.URL.Query()
+	username, err := GetURLArg(vals, "username")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	password, err := GetURLArg(r, "password")
+	password, err := GetURLArg(vals, "password")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	topic, err := GetURLArg(r, "topic")
+	topic, err := GetURLArg(vals, "topic")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
@@ -248,13 +251,14 @@ func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Population) PollMessagesEntry(w http.ResponseWriter, r *http.Request) {
-	username, err := GetURLArg(r, "username")
+	vals := r.URL.Query()
+	username, err := GetURLArg(vals, "username")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	password, err := GetURLArg(r, "password")
+	password, err := GetURLArg(vals, "password")
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
