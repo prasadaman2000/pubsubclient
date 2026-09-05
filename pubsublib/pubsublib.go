@@ -87,7 +87,7 @@ func (p *PubSubClient) Subscribe(topic string, serverIp string, serverPort int) 
 
 func (p *PubSubClient) Publish(topic string, msg []byte, serverIp string, serverPort int) error {
 	serverUrl := fmt.Sprintf("http://%s:%d/publish?topic=%s&%s", serverIp, serverPort, topic, p.urlEncode())
-	resp, err := http.Post(serverUrl, "application/octet-stream", bytes.NewBuffer(msg))
+	resp, err := http.Post(serverUrl, "application/octet-stream", bytes.NewReader(msg))
 	if err != nil {
 		return err
 	}
