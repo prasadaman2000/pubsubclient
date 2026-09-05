@@ -47,6 +47,7 @@ func NewPubSubClient(listenIp string, listenPort int) *PubSubClient {
 		}
 		defer r.Body.Close()
 		body, err := io.ReadAll(r.Body)
+		fmt.Printf("[2. pubsubclient] Received body size: %d bytes\n", len(body))
 		if err != nil {
 			w.WriteHeader(400)
 			w.Write([]byte(fmt.Sprintf("could not get request body %v", err)))
