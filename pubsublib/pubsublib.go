@@ -47,16 +47,17 @@ func NewPubSubClient(listenIp string, listenPort int) *PubSubClient {
 		}
 		defer r.Body.Close()
 		body, err := io.ReadAll(r.Body)
+		fmt.Printf("received %d bytes\n", len(body))
 		if err != nil {
 			w.WriteHeader(400)
 			fmt.Fprintf(w, "could not get request body %v", err)
 			return
 		}
-		message := &Message{
+		message := Message{
 			topic:   topic,
 			message: body,
 		}
-		client.MessageChan <- message
+		client.MessageChan <- &message
 	})
 	go http.ListenAndServe(fmt.Sprintf("%s:%d", listenIp, listenPort), serverMux)
 	return client
@@ -86,7 +87,8 @@ func (p *PubSubClient) Subscribe(topic string, serverIp string, serverPort int) 
 
 func (p *PubSubClient) Publish(topic string, msg []byte, serverIp string, serverPort int) error {
 	serverUrl := fmt.Sprintf("http://%s:%d/publish?topic=%s&%s", serverIp, serverPort, topic, p.urlEncode())
-	resp, err := http.Post(serverUrl, "text", bytes.NewBuffer(msg))
+	fmt.Printf("Sending %d bytes\n", len(msg))
+	resp, err := http.Post(serverUrl, "text", bytes.NewReader(msg))
 	if err != nil {
 		return err
 	}
