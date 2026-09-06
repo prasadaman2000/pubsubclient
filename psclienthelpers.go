@@ -35,7 +35,7 @@ type Client struct {
 	port         int
 	username     string
 	password     string
-	messageQueue []*QueuedMessage // this addr will likely be constantly changing, don't read this directly
+	messageQueue []*QueuedMessage // not safe to read
 	lastOutgoing time.Time
 	pubSubClient *pubsublib.PubSubClient
 	lock         *sync.Mutex
@@ -44,21 +44,26 @@ type Client struct {
 func (c *Client) EnqueueMessages() {
 	for {
 		msg := <-c.pubSubClient.MessageChan
-		message := &QueuedMessage{
-			Msg:   msg.GetMessageRaw(),
+
+		raw := msg.GetMessageRaw()
+		message := QueuedMessage{
+			Msg:   raw,
 			Time:  time.Now().UTC(),
 			Topic: msg.GetTopic(),
 		}
 		c.lock.Lock()
-		c.messageQueue = append(c.messageQueue, message)
+		fmt.Printf("Enqueueing message of size %d\n", len(message.Msg))
+		c.messageQueue = append(c.messageQueue, &message)
 		c.lock.Unlock()
 	}
 }
 
 func (c *Client) PollMessages() []*QueuedMessage {
 	c.lock.Lock()
-	msgs := c.messageQueue
-	c.messageQueue = make([]*QueuedMessage, 0)
+	msgs := make([]*QueuedMessage, len(c.messageQueue))
+	copy(msgs, c.messageQueue)
+	clear(c.messageQueue)
+	c.messageQueue = c.messageQueue[:0]
 	c.lock.Unlock()
 	return msgs
 }
@@ -179,7 +184,7 @@ func (p *Population) ClientConnectEntry(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	w.WriteHeader(200)
-	w.Write([]byte(fmt.Sprintf("client %s connected", username)))
+	fmt.Fprintf(w, "client %s connected", username)
 }
 
 func (p *Population) SubscribeEntry(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +214,7 @@ func (p *Population) SubscribeEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
-	w.Write([]byte(fmt.Sprintf("subscribed to %v", topic)))
+	fmt.Fprintf(w, "subscribed to %v", topic)
 }
 
 func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +241,7 @@ func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(400)
-		w.Write([]byte(fmt.Sprintf("could not get request body %v", err)))
+		fmt.Fprintf(w, "could not get request body %v", err)
 		return
 	}
 	err = p.Publish(username, password, topic, body)
@@ -246,7 +251,7 @@ func (p *Population) PublishEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
-	w.Write([]byte(fmt.Sprintf("published to %v", topic)))
+	fmt.Fprintf(w, "published to %v", topic)
 }
 
 func (p *Population) PollMessagesEntry(w http.ResponseWriter, r *http.Request) {
@@ -268,6 +273,10 @@ func (p *Population) PollMessagesEntry(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))
 		return
+	}
+	for _, message := range messages {
+		fmt.Printf("Address of message: %p\n", message)
+		// fmt.Printf("marshalling message of size: %d\n", len(message.Msg))
 	}
 	marshaled, err := json.Marshal(messages)
 	if err != nil {
